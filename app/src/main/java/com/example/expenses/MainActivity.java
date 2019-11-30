@@ -1,17 +1,29 @@
 package com.example.expenses;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Toast;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -37,8 +49,10 @@ public class MainActivity extends AppCompatActivity {
 
     public static String sPref = null;
 
+    ListView decksView;
+    Button addDeck;
 
-
+    List<Deck> decks;
 
 
     @Override
@@ -49,7 +63,38 @@ public class MainActivity extends AppCompatActivity {
         db = new DatabaseHelper(getApplicationContext());
 
 
+        decksView = (ListView)findViewById(R.id.deckList);
+        addDeck = (Button)findViewById(R.id.addDeck);
 
+        viewDecks();
+
+
+        addDeck.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Zadejte jméno projektu:");
+
+                final EditText input = new EditText(MainActivity.this);
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
+                builder.setView(input);
+
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        addDeck(input.getText().toString());
+                    }
+                });
+                builder.setNegativeButton("Zrušit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
+            }
+        });
     }
 
     @Override
@@ -71,6 +116,54 @@ public class MainActivity extends AppCompatActivity {
 
         updateConnectedFlags();
         loadCurrencies();
+    }
+
+    private void viewDecks(){
+        decks = db.getAllDecks();
+
+        final String[] deckNames = new String[decks.size()];
+        final long[] deckIds = new long[decks.size()];
+
+        for ( int i = 0; i < decks.size(); i++ ) {
+            deckNames[i] = decks.get(i).getName();
+            deckIds[i] = decks.get(i).getId();
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.deck_list, deckNames);
+        decksView.setAdapter(adapter);
+        decksView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+                //TODO new activity s parametrem deckIds[arg2]
+
+            }
+
+        });
+    }
+
+    private void addDeck(String name){
+        if ( !db.deckExists(name) ){
+            db.createDeck(name);
+            viewDecks();
+        }
+        else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle("Alert");
+            builder.setMessage("Projekt se zadaným jménem již existuje.");
+
+
+
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+
+
+            builder.show();
+        }
     }
 
 

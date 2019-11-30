@@ -107,11 +107,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * INSERTs
      */
 
-    public long createDeck(Deck deck) {
+    public long createDeck(String name) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_NAME, deck.getName());
+        values.put(KEY_NAME, name);
 
         return db.insert(TABLE_DECK, null, values);
     }
@@ -212,6 +212,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         c.close();
         return d;
+    }
+
+    public boolean deckExists(String name){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selectQuery = "SELECT  * FROM " + TABLE_DECK + " WHERE "
+                + KEY_NAME + " = '" + name + "'";
+
+        Log.e(LOG, selectQuery);
+
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.getCount() > 0)
+            return true;
+
+        return false;
     }
 
     public Currency getCurrency(long currencyId){
