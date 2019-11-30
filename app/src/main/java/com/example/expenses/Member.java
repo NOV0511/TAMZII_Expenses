@@ -1,18 +1,10 @@
 package com.example.expenses;
 
 public class Member {
-    private int id;
-    private String name;
-    private Deck deckId;
+    public final int id;
+    public final String name;
+    public final Deck deckId;
 
-    public Member(int id) {
-        this.id = id;
-    }
-
-    public Member(int id, String name) {
-        this.id = id;
-        this.name = name;
-    }
 
     public Member(int id, String name, Deck deckId) {
         this.id = id;

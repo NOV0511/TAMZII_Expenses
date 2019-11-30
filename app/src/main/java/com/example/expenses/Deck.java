@@ -2,8 +2,8 @@ package com.example.expenses;
 
 public class Deck {
 
-    private int id;
-    private String name;
+    public final int id;
+    public final String name;
 
 
 
@@ -15,6 +15,7 @@ public class Deck {
     public int getId() {
         return this.id;
     }
+
 
     public String getName() {
         return this.name;

@@ -26,6 +26,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_MEMBER = "members";
     private static final String TABLE_TRANSACTION = "transactions";
     private static final String TABLE_TRANSACTION_MEMBER = "transaction_members";
+    private static final String TABLE_CURRENCY = "currency";
 
     //Common keys
     private static final String KEY_ID = "id";
@@ -35,11 +36,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DECK_FK = "deck_id";
     private static final String MEMBER_FK = "member_id";
     private static final String TRANSACTION_FK = "transaction_id";
+    private static final String CURRENCY_FK = "currency_id";
 
     //Transaction columns
-    private static final String TRANSACTION_DESCRITION = "description";
+    private static final String TRANSACTION_DESCRIPTION = "description";
     private static final String TRANSACTION_VALUE = "value";
-    private static final String TRANSACTION_CURRENCY = "currency";
+
+    //Currency columns
+    private static final String CURRENCY_CODE = "code";
+    private static final String CURRENCY_AMOUNT = "amount";
+    private static final String CURRENCY_RATE = "rate";
+    private static final String CURRENCY_COUNTRY = "country";
+
 
 
 
@@ -52,10 +60,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String CREATE_TABLE_MEMBER = "CREATE TABLE IF NOT EXISTS " + TABLE_MEMBER
             + "(" + KEY_ID + " INTEGER PRIMARY KEY, " + KEY_NAME + " TEXT, " + DECK_FK + " INTEGER)";
 
+
+    // Currency table create statement
+    private static final String CREATE_TABLE_CURRENCY = "CREATE TABLE IF NOT EXISTS " + TABLE_CURRENCY
+            + "(" + KEY_ID + " INTEGER PRIMARY KEY, " + CURRENCY_CODE + " TEXT, " + KEY_NAME + " TEXT, "
+            + CURRENCY_AMOUNT + " REAL, " + CURRENCY_RATE + " REAL, "  + CURRENCY_COUNTRY + " TEXT)";
+
     // Transaction table create statement
     private static final String CREATE_TABLE_TRANSACTION = "CREATE TABLE IF NOT EXISTS " + TABLE_TRANSACTION
-            + "(" + KEY_ID + " INTEGER PRIMARY KEY, " + TRANSACTION_DESCRITION +" TEXT, " + TRANSACTION_VALUE
-            + " REAL, " + TRANSACTION_CURRENCY + " TEXT, " + DECK_FK + " INTEGER, " + MEMBER_FK + " INTEGER)";
+            + "(" + KEY_ID + " INTEGER PRIMARY KEY, " + TRANSACTION_DESCRIPTION +" TEXT, " + TRANSACTION_VALUE
+            + " REAL, " + CURRENCY_FK + " TEXT, " + DECK_FK + " INTEGER, " + MEMBER_FK + " INTEGER)";
 
     // Transaction_members table create statement
     private static final String CREATE_TABLE_TRANSACTION_MEMBER = "CREATE TABLE IF NOT EXISTS " + TABLE_TRANSACTION_MEMBER
@@ -73,6 +87,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_MEMBER);
         db.execSQL(CREATE_TABLE_TRANSACTION);
         db.execSQL(CREATE_TABLE_TRANSACTION_MEMBER);
+        db.execSQL(CREATE_TABLE_CURRENCY);
     }
 
     @Override
@@ -82,6 +97,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRANSACTION);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_MEMBER);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_DECK);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CURRENCY);
 
         // create new tables
         onCreate(db);
@@ -117,20 +133,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(TRANSACTION_FK, transaction);
         values.put(MEMBER_FK, member);
 
-        db.insert(TABLE_MEMBER, null, values);
+        db.insert(TABLE_TRANSACTION_MEMBER, null, values);
     }
 
     public long createTransaction(Transaction transaction) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(TRANSACTION_DESCRITION, transaction.getDescription());
+        values.put(TRANSACTION_DESCRIPTION, transaction.getDescription());
         values.put(TRANSACTION_VALUE, transaction.getValue());
-        values.put(TRANSACTION_CURRENCY, transaction.getCurrency());
+        values.put(CURRENCY_FK, transaction.getCurrency().getId());
         values.put(DECK_FK, transaction.getDeckId().getId());
         values.put(MEMBER_FK, transaction.getWho().getId());
 
-        long transactionId = db.insert(TABLE_MEMBER, null, values);
+        long transactionId = db.insert(TABLE_TRANSACTION, null, values);
 
         for (Member member : transaction.getForWhom()) {
             createTransactionMember(transactionId, member.getId());
@@ -139,13 +155,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return transactionId;
     }
 
-    //TODO: create Currency
+    public long createCurrency(Currency currency) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(CURRENCY_CODE, currency.getCode());
+        values.put(KEY_NAME, currency.getName());
+        values.put(CURRENCY_AMOUNT, currency.getAmount());
+        values.put(CURRENCY_RATE, currency.getRate());
+        values.put(CURRENCY_COUNTRY, currency.getCountry());
+
+        return db.insert(TABLE_CURRENCY, null, values);
+    }
 
     /**
      * GETTERs
      */
 
-    public List<Deck> getDecks() {
+    public List<Deck> getAllDecks() {
         List<Deck> decks = new ArrayList<Deck>();
         String selectQuery = "SELECT  * FROM " + TABLE_DECK;
 
@@ -164,7 +191,77 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 decks.add(deck);
             } while (c.moveToNext());
         }
+        c.close();
         return decks;
+    }
+
+    public Deck getDeck(int deckId){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selectQuery = "SELECT  * FROM " + TABLE_DECK + " WHERE "
+                + KEY_ID + " = " + deckId;
+
+        Log.e(LOG, selectQuery);
+
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c != null)
+            c.moveToFirst();
+
+        Deck d = new Deck(c.getInt(c.getColumnIndex(KEY_ID)), c.getString(c.getColumnIndex(KEY_NAME)));
+
+        c.close();
+        return d;
+    }
+
+    public Currency getCurrency(int currencyId){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selectQuery = "SELECT  * FROM " + TABLE_CURRENCY + " WHERE "
+                + KEY_ID + " = " + currencyId;
+
+        Log.e(LOG, selectQuery);
+
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c != null)
+            c.moveToFirst();
+
+        Currency cur = new Currency(
+                c.getInt(c.getColumnIndex(KEY_ID)),
+                c.getString(c.getColumnIndex(CURRENCY_CODE)),
+                c.getString(c.getColumnIndex(KEY_NAME)),
+                c.getDouble(c.getColumnIndex(CURRENCY_AMOUNT)),
+                c.getDouble(c.getColumnIndex(CURRENCY_RATE)),
+                c.getString(c.getColumnIndex(CURRENCY_COUNTRY))
+        );
+
+        c.close();
+
+        return cur;
+    }
+
+    public Member getMember(int memberId){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selectQuery = "SELECT  * FROM " + TABLE_MEMBER+ " WHERE "
+                + KEY_ID + " = " + memberId;
+
+        Log.e(LOG, selectQuery);
+
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c != null)
+            c.moveToFirst();
+
+        Member m = new Member(
+                c.getInt(c.getColumnIndex(KEY_ID)),
+                c.getString(c.getColumnIndex(KEY_NAME)),
+                getDeck(c.getInt(c.getColumnIndex(DECK_FK)))
+        );
+
+        c.close();
+        return m;
     }
 
     public List<Member> getMembers(int deckId) {
@@ -180,13 +277,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             do {
                 Member member = new Member(
                         c.getInt(c.getColumnIndex(KEY_ID)),
-                        c.getString(c.getColumnIndex(KEY_NAME))
-                        //TODO: pridat deck + napsat getter na id
+                        c.getString(c.getColumnIndex(KEY_NAME)),
+                        getDeck(c.getInt(c.getColumnIndex(DECK_FK)))
                 );
 
                 members.add(member);
             } while (c.moveToNext());
         }
+        c.close();
         return members;
     }
 
@@ -203,20 +301,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             do {
                 Transaction transaction = new Transaction(
                         c.getInt(c.getColumnIndex(KEY_ID)),
-                        c.getString(c.getColumnIndex(TRANSACTION_DESCRITION)),
+                        c.getString(c.getColumnIndex(TRANSACTION_DESCRIPTION)),
                         c.getDouble(c.getColumnIndex(TRANSACTION_VALUE)),
-                        //TODO: predelat currency na objekt
-                        c.getString(c.getColumnIndex(TRANSACTION_CURRENCY)),
-                        //TODO: to same jak nize
-                        new Member(c.getInt(c.getColumnIndex(MEMBER_FK)))
-                        //TODO: pridat deck + napsat getter na id
+                        getCurrency(c.getInt(c.getColumnIndex(CURRENCY_FK))),
+                        getDeck(c.getInt(c.getColumnIndex(DECK_FK))),
+                        getMember(c.getInt(c.getColumnIndex(MEMBER_FK)))
                 );
 
                 List<Member> members = new ArrayList<Member>();
 
                 for (int memberId : getTransactionMembers(transaction.getId())){
-                    //TODO: get member podle id
-                    members.add(new Member(memberId));
+                    members.add(getMember(memberId));
                 }
 
                 transaction.setForWhom(members);
@@ -224,6 +319,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 transactions.add(transaction);
             } while (c.moveToNext());
         }
+        c.close();
         return transactions;
     }
 
@@ -241,6 +337,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 members.add(c.getInt(c.getColumnIndex(MEMBER_FK)));
             } while (c.moveToNext());
         }
+        c.close();
         return members;
     }
 
