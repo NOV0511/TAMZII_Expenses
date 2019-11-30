@@ -1,19 +1,19 @@
 package com.example.expenses;
 
 public class Member {
-    public final int id;
+    public final long id;
     public final String name;
     public final Deck deckId;
 
 
-    public Member(int id, String name, Deck deckId) {
+    public Member(long id, String name, Deck deckId) {
         this.id = id;
         this.name = name;
         this.deckId = deckId;
     }
 
 
-    public int getId() {
+    public long getId() {
         return this.id;
     }
 

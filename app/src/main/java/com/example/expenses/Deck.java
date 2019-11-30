@@ -2,17 +2,17 @@ package com.example.expenses;
 
 public class Deck {
 
-    public final int id;
+    public final long id;
     public final String name;
 
 
 
-    public Deck(int id, String name) {
+    public Deck(long id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public int getId() {
+    public long getId() {
         return this.id;
     }
 

@@ -3,7 +3,7 @@ package com.example.expenses;
 import java.util.List;
 
 public class Transaction {
-    public final int id;
+    public final long id;
     public final String description;
     public final double value;
     public final Currency currencyId;
@@ -13,7 +13,7 @@ public class Transaction {
 
 
 
-    public Transaction(int id, String description, double value, Currency currencyId, Deck deckId, Member who) {
+    public Transaction(long id, String description, double value, Currency currencyId, Deck deckId, Member who) {
         this.id = id;
         this.description = description;
         this.value = value;
@@ -22,7 +22,7 @@ public class Transaction {
         this.who = who;
     }
 
-    public int getId() {
+    public long getId() {
         return this.id;
     }
 

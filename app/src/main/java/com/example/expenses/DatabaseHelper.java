@@ -126,7 +126,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_MEMBER, null, values);
     }
 
-    public void createTransactionMember(long transaction, int member) {
+    public void createTransactionMember(long transaction, long member) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -155,15 +155,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return transactionId;
     }
 
-    public long createCurrency(Currency currency) {
+    public long createCurrency(String code, String name, double amount, double rate, String country) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(CURRENCY_CODE, currency.getCode());
-        values.put(KEY_NAME, currency.getName());
-        values.put(CURRENCY_AMOUNT, currency.getAmount());
-        values.put(CURRENCY_RATE, currency.getRate());
-        values.put(CURRENCY_COUNTRY, currency.getCountry());
+        values.put(CURRENCY_CODE, code);
+        values.put(KEY_NAME, name);
+        values.put(CURRENCY_AMOUNT, amount);
+        values.put(CURRENCY_RATE, rate);
+        values.put(CURRENCY_COUNTRY, country);
 
         return db.insert(TABLE_CURRENCY, null, values);
     }
@@ -184,7 +184,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (c.moveToFirst()) {
             do {
                 Deck deck = new Deck(
-                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        c.getLong(c.getColumnIndex(KEY_ID)),
                         c.getString(c.getColumnIndex(KEY_NAME))
                 );
 
@@ -195,7 +195,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return decks;
     }
 
-    public Deck getDeck(int deckId){
+    public Deck getDeck(long deckId){
         SQLiteDatabase db = this.getReadableDatabase();
 
         String selectQuery = "SELECT  * FROM " + TABLE_DECK + " WHERE "
@@ -208,13 +208,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (c != null)
             c.moveToFirst();
 
-        Deck d = new Deck(c.getInt(c.getColumnIndex(KEY_ID)), c.getString(c.getColumnIndex(KEY_NAME)));
+        Deck d = new Deck(c.getLong(c.getColumnIndex(KEY_ID)), c.getString(c.getColumnIndex(KEY_NAME)));
 
         c.close();
         return d;
     }
 
-    public Currency getCurrency(int currencyId){
+    public Currency getCurrency(long currencyId){
         SQLiteDatabase db = this.getReadableDatabase();
 
         String selectQuery = "SELECT  * FROM " + TABLE_CURRENCY + " WHERE "
@@ -228,7 +228,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             c.moveToFirst();
 
         Currency cur = new Currency(
-                c.getInt(c.getColumnIndex(KEY_ID)),
+                c.getLong(c.getColumnIndex(KEY_ID)),
                 c.getString(c.getColumnIndex(CURRENCY_CODE)),
                 c.getString(c.getColumnIndex(KEY_NAME)),
                 c.getDouble(c.getColumnIndex(CURRENCY_AMOUNT)),
@@ -241,7 +241,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return cur;
     }
 
-    public Member getMember(int memberId){
+    public Member getMember(long memberId){
         SQLiteDatabase db = this.getReadableDatabase();
 
         String selectQuery = "SELECT  * FROM " + TABLE_MEMBER+ " WHERE "
@@ -255,16 +255,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             c.moveToFirst();
 
         Member m = new Member(
-                c.getInt(c.getColumnIndex(KEY_ID)),
+                c.getLong(c.getColumnIndex(KEY_ID)),
                 c.getString(c.getColumnIndex(KEY_NAME)),
-                getDeck(c.getInt(c.getColumnIndex(DECK_FK)))
+                getDeck(c.getLong(c.getColumnIndex(DECK_FK)))
         );
 
         c.close();
         return m;
     }
 
-    public List<Member> getMembers(int deckId) {
+    public List<Member> getMembers(long deckId) {
         List<Member> members = new ArrayList<Member>();
         String selectQuery = "SELECT  * FROM " + TABLE_MEMBER + " WHERE " + DECK_FK + " = " + deckId;
 
@@ -276,9 +276,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (c.moveToFirst()) {
             do {
                 Member member = new Member(
-                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        c.getLong(c.getColumnIndex(KEY_ID)),
                         c.getString(c.getColumnIndex(KEY_NAME)),
-                        getDeck(c.getInt(c.getColumnIndex(DECK_FK)))
+                        getDeck(c.getLong(c.getColumnIndex(DECK_FK)))
                 );
 
                 members.add(member);
@@ -288,7 +288,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return members;
     }
 
-    public List<Transaction> getTransactions(int deckId) {
+    public List<Transaction> getTransactions(long deckId) {
         List<Transaction> transactions = new ArrayList<Transaction>();
         String selectQuery = "SELECT  * FROM " + TABLE_TRANSACTION + " WHERE " + DECK_FK + " = " + deckId;;
 
@@ -300,17 +300,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (c.moveToFirst()) {
             do {
                 Transaction transaction = new Transaction(
-                        c.getInt(c.getColumnIndex(KEY_ID)),
+                        c.getLong(c.getColumnIndex(KEY_ID)),
                         c.getString(c.getColumnIndex(TRANSACTION_DESCRIPTION)),
                         c.getDouble(c.getColumnIndex(TRANSACTION_VALUE)),
-                        getCurrency(c.getInt(c.getColumnIndex(CURRENCY_FK))),
-                        getDeck(c.getInt(c.getColumnIndex(DECK_FK))),
-                        getMember(c.getInt(c.getColumnIndex(MEMBER_FK)))
+                        getCurrency(c.getLong(c.getColumnIndex(CURRENCY_FK))),
+                        getDeck(c.getLong(c.getColumnIndex(DECK_FK))),
+                        getMember(c.getLong(c.getColumnIndex(MEMBER_FK)))
                 );
 
                 List<Member> members = new ArrayList<Member>();
 
-                for (int memberId : getTransactionMembers(transaction.getId())){
+                for (long memberId : getTransactionMembers(transaction.getId())){
                     members.add(getMember(memberId));
                 }
 
@@ -323,8 +323,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return transactions;
     }
 
-    private List<Integer> getTransactionMembers(int transactionId) {
-        List<Integer> members = new ArrayList<Integer>();
+    private List<Long> getTransactionMembers(long transactionId) {
+        List<Long> members = new ArrayList<Long>();
         String selectQuery = "SELECT  * FROM " + TABLE_TRANSACTION_MEMBER + " WHERE " + TRANSACTION_FK + " = " + transactionId;
 
         Log.e(LOG, selectQuery);
@@ -334,12 +334,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         if (c.moveToFirst()) {
             do {
-                members.add(c.getInt(c.getColumnIndex(MEMBER_FK)));
+                members.add(c.getLong(c.getColumnIndex(MEMBER_FK)));
             } while (c.moveToNext());
         }
         c.close();
         return members;
     }
 
-    //TODO: Get currency podle KODU
+    public void deleteCurrencies(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("delete from "+ TABLE_CURRENCY);
+
+    }
 }

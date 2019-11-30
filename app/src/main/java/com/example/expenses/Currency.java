@@ -2,7 +2,7 @@ package com.example.expenses;
 
 public class Currency {
 
-    private final int id;
+    private final long id;
     private final String code;
     private final String name;
     private final double amount;
@@ -10,7 +10,7 @@ public class Currency {
     private final String country;
 
 
-    Currency(int id, String code, String name, double amount, double rate, String country) {
+    Currency(long id, String code, String name, double amount, double rate, String country) {
 
         this.id = id;
         this.code = code;
@@ -20,7 +20,7 @@ public class Currency {
         this.country = country;
     }
 
-    public int getId() { return this.id; };
+    public long getId() { return this.id; };
     public String getCode() { return this.code; };
     public String getName() { return this.name; };
     public double getAmount() { return this.amount; };
