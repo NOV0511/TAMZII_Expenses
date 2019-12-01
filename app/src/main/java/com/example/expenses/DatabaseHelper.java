@@ -18,7 +18,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String LOG = "DatabaseHelper";
 
     // Database Version
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Database Name
     private static final String DATABASE_NAME = "expenses";
@@ -43,6 +43,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     //Transaction columns
     private static final String TRANSACTION_DESCRIPTION = "description";
     private static final String TRANSACTION_VALUE = "value";
+    private static final String TRANSACTION_REAL_VALUE = "realValue";
 
     //Currency columns
     private static final String CURRENCY_CODE = "code";
@@ -71,7 +72,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Transaction table create statement
     private static final String CREATE_TABLE_TRANSACTION = "CREATE TABLE IF NOT EXISTS " + TABLE_TRANSACTION
             + "(" + KEY_ID + " INTEGER PRIMARY KEY, " + TRANSACTION_DESCRIPTION +" TEXT, " + TRANSACTION_VALUE
-            + " REAL, " + CURRENCY_FK + " TEXT, " + DECK_FK + " INTEGER, " + MEMBER_FK + " INTEGER)";
+            + " REAL, " + CURRENCY_FK + " TEXT, " + DECK_FK + " INTEGER, " + MEMBER_FK + " INTEGER, " + TRANSACTION_REAL_VALUE + " REAL)";
 
     // Transaction_members table create statement
     private static final String CREATE_TABLE_TRANSACTION_MEMBER = "CREATE TABLE IF NOT EXISTS " + TABLE_TRANSACTION_MEMBER
@@ -151,12 +152,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public long createTransaction(String description, double value, long currencyId, long deckId, long memberId, List<Member> members) {
         SQLiteDatabase db = this.getWritableDatabase();
 
+        Currency c = getCurrency(currencyId);
+
+        double realValue = (value * c.getRate())/c.getAmount();
+
         ContentValues values = new ContentValues();
         values.put(TRANSACTION_DESCRIPTION, description);
         values.put(TRANSACTION_VALUE, value);
         values.put(CURRENCY_FK, currencyId);
         values.put(DECK_FK, deckId);
         values.put(MEMBER_FK, memberId);
+        values.put(TRANSACTION_REAL_VALUE, realValue);
 
         long transactionId = db.insert(TABLE_TRANSACTION, null, values);
 
@@ -378,7 +384,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         c.getDouble(c.getColumnIndex(TRANSACTION_VALUE)),
                         getCurrency(c.getLong(c.getColumnIndex(CURRENCY_FK))),
                         getDeck(c.getLong(c.getColumnIndex(DECK_FK))),
-                        getMember(c.getLong(c.getColumnIndex(MEMBER_FK)))
+                        getMember(c.getLong(c.getColumnIndex(MEMBER_FK))),
+                        c.getDouble(c.getColumnIndex(TRANSACTION_REAL_VALUE))
                 );
 
                 List<Member> members = new ArrayList<Member>();

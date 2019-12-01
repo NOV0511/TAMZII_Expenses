@@ -10,16 +10,18 @@ public class Transaction {
     public final Deck deckId;
     public final Member who;
     public List<Member> forWhom;
+    public final double realValue;
 
 
 
-    public Transaction(long id, String description, double value, Currency currencyId, Deck deckId, Member who) {
+    public Transaction(long id, String description, double value, Currency currencyId, Deck deckId, Member who, double realValue) {
         this.id = id;
         this.description = description;
         this.value = value;
         this.currencyId = currencyId;
         this.deckId = deckId;
         this.who = who;
+        this.realValue = realValue;
     }
 
     public long getId() {
@@ -49,6 +51,8 @@ public class Transaction {
     public List<Member> getForWhom() {
         return this.forWhom;
     }
+
+    public double getRealValue() { return  this.realValue; }
 
     public void setForWhom(List<Member> members) { this.forWhom = members; }
 }

@@ -120,15 +120,16 @@ public class MemberActivity extends AppCompatActivity {
 
     public double getMemberBalance(long memberId){
         double balance = 0.0;
-        /*List<Transaction> tr = db.getTransactions(deckId);
+        List<Transaction> tr = db.getTransactions(deckId);
         for ( int i = 0; i < tr.size(); i++){
             Transaction t = tr.get(i);
             if (t.getWho().getId() == memberId)
-
+                balance += t.getRealValue();
             for ( int j = 0; j < t.getForWhom().size(); j++ ) {
-
+                if (t.getForWhom().get(j).getId() == memberId)
+                    balance -= (t.getRealValue()/t.getForWhom().size());
             }
-        }*/
+        }
 
         return balance;
     }

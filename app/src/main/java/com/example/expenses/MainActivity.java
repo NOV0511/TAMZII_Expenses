@@ -154,15 +154,12 @@ public class MainActivity extends AppCompatActivity {
             builder.setTitle("Alert");
             builder.setMessage("Projekt se zadaným jménem již existuje.");
 
-
-
             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
                 }
             });
-
 
             builder.show();
         }
@@ -189,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
         if (((sPref.equals(ANY)) && (wifiConnected || mobileConnected))
                 || ((sPref.equals(WIFI)) && (wifiConnected))) {
             db.deleteCurrencies();
+            db.createCurrency("CZK", "koruna", 1.0, 1.0, "Česká Republika");
             new DownloadXmlTask(this).execute(URL);
         }
     }

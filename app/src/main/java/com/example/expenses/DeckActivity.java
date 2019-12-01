@@ -181,13 +181,6 @@ public class DeckActivity extends AppCompatActivity {
                                 }
                             }
                         }
-                       /* //addTransaction(desc.getText().toString(), Double.parseDouble(value.getText().toString()),
-                          //      currIds[curr.getId()], (long)who.getCheckedRadioButtonId(), forWhomMem);
-                        Log.d("TRANSKAdesc", desc.getText().toString());
-                        Log.d("TRANSKAvalue", ""+Double.parseDouble(value.getText().toString()));
-                        Log.d("TRANSKAcurr", ""+curr.getSelectedItemPosition());
-                        Log.d("TRANSKAcurr", ""+currIds[curr.getSelectedItemPosition()]);
-                        Log.d("TRANSKAwho", ""+(long)who.getCheckedRadioButtonId());*/
 
                         if(desc.getText().toString().isEmpty() || value.getText().toString().isEmpty() ||
                             who.getCheckedRadioButtonId() == -1 || forWhomMem.size() == 0){
@@ -297,10 +290,7 @@ public class DeckActivity extends AppCompatActivity {
     }
 
     public void showCount(){
-
+        
     }
 
-    public void addTransaction(String description, double value, long currencyId, long memberId, List<Member> members) {
-
-    }
 }
