@@ -2,6 +2,7 @@ package com.example.expenses;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -9,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -25,14 +27,18 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 public class DeckActivity extends AppCompatActivity {
 
@@ -68,6 +74,8 @@ public class DeckActivity extends AppCompatActivity {
         debtsList = findViewById(R.id.debts);
         total = findViewById(R.id.total);
         totalCount = findViewById(R.id.totalCount);
+
+        members = db.getMembers(deckId);
 
         showTransactions();
 
@@ -113,7 +121,7 @@ public class DeckActivity extends AppCompatActivity {
                 textValue.setText("Hodnota:");
 
                 final EditText value = new EditText(DeckActivity.this);
-                value.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                value.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
                 TextView textCurr = new TextView(DeckActivity.this);
                 textCurr.setText("Měna:");
@@ -164,8 +172,9 @@ public class DeckActivity extends AppCompatActivity {
                     layout.addView(cb);
                 }
 
-
-                builder.setView(layout);
+                ScrollView scroll = new ScrollView(DeckActivity.this);
+                scroll.addView(layout);
+                builder.setView(scroll);
 
 
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -246,6 +255,7 @@ public class DeckActivity extends AppCompatActivity {
     public void showTransactions(){
         transactions = db.getTransactions(deckId);
         transactionsList.removeAllViewsInLayout();
+        debtsList.removeAllViewsInLayout();
 
         showTransactionList();
         showDebtsList();
@@ -263,7 +273,8 @@ public class DeckActivity extends AppCompatActivity {
             layout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
             layout.setOrientation(LinearLayout.VERTICAL);
 
-            transactionsList.addView(layout);
+            if (!tr.getDescription().equals("debtPayBack"))
+                transactionsList.addView(layout);
 
             TextView tv1 = new TextView(DeckActivity.this);
             tv1.setText("" + tr.getDescription() + " - " + tr.getValue() + " " + tr.getCurrency().getCode());
@@ -287,10 +298,148 @@ public class DeckActivity extends AppCompatActivity {
 
     public void showDebtsList(){
 
+        long lowest = 1;
+        long highest = 1;
+
+        if (members.size() > 1){
+            lowest = members.get(0).getId();
+            highest = members.get(0).getId();
+        }
+
+        Map<Long, Double> map = new HashMap<Long, Double>();
+        for ( Member m : members ) {
+            map.put(m.getId(), getMemberBalance(m.getId()));
+            if (getMemberBalance(m.getId()) > getMemberBalance(highest)){
+                highest = m.getId();
+            }
+            if (getMemberBalance(m.getId()) < getMemberBalance(lowest)){
+                lowest = m.getId();
+            }
+        }
+        boolean completed = true;
+        double difference;
+
+
+        for (Map.Entry<Long, Double> entry : map.entrySet()) {
+            if (entry.getValue() > 0.1 || entry.getValue() < -0.1){
+                completed = false;
+            }
+        }
+
+        while ( !completed ) {
+            if (map.get(highest) > map.get(lowest) * -1){
+                difference = map.get(lowest) * -1;
+            }else {
+                difference = map.get(highest);
+            }
+
+            LinearLayout layout = new LinearLayout(DeckActivity.this);
+
+            layout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+            layout.setOrientation(LinearLayout.VERTICAL);
+
+            debtsList.addView(layout);
+
+            TextView tv1 = new TextView(DeckActivity.this);
+            tv1.setText("" + db.getMember(lowest).getName() + " -> " + db.getMember(highest).getName());
+            TextView tv2 = new TextView(DeckActivity.this);
+            tv2.setText("" + difference);
+
+            layout.addView(tv1);
+            layout.addView(tv2);
+
+            final double diff = difference;
+            final long low = lowest;
+            final long high = highest;
+
+            layout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(DeckActivity.this);
+                    builder.setTitle("Chcete splatit tento dluh?");
+
+                    final TextView text1 = new TextView(DeckActivity.this);
+                    text1.setText("");
+                    builder.setView(text1);
+
+                    builder.setPositiveButton("ANO", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            List<Member> m = new ArrayList<>();
+                            m.add(db.getMember(high));
+                            db.createTransaction("debtPayBack", diff, 1, deckId, low, m);
+                            showTransactions();
+                        }
+                    });
+                    builder.setNegativeButton("NE", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    builder.show();
+                }
+            });
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                map.replace(highest, map.get(highest) - difference);
+                map.replace(lowest, map.get(lowest) + difference);
+            }
+
+            boolean first = true;
+            completed = true;
+            for (Map.Entry<Long, Double> entry : map.entrySet()) {
+                if (first) {
+                    lowest = entry.getKey();
+                    highest = entry.getKey();
+                    first = false;
+                }
+                else{
+                    if (entry.getValue() > map.get(highest)){
+                        highest = entry.getKey();
+                    }
+                    if (entry.getValue() < map.get(lowest)){
+                        lowest = entry.getKey();
+                    }
+                }
+                if (entry.getValue() > 0.1 || entry.getValue() < -0.1){
+                    completed = false;
+                }
+            }
+        }
     }
 
+
+
     public void showCount(){
-        
+        int count = 0;
+        double sum = 0;
+
+        for ( int i = 0; i < transactions.size(); i++ ) {
+            if (!transactions.get(i).getDescription().equals("debtPayBack")){
+                count++;
+                sum += transactions.get(i).getRealValue();
+            }
+        }
+
+        total.setText(""+ sum);
+        totalCount.setText(""+ count);
+    }
+
+    public double getMemberBalance(long memberId){
+        double balance = 0.0;
+        for ( int i = 0; i < transactions.size(); i++){
+            Transaction t = transactions.get(i);
+            if (t.getWho().getId() == memberId)
+                balance += t.getRealValue();
+            for ( int j = 0; j < t.getForWhom().size(); j++ ) {
+                if (t.getForWhom().get(j).getId() == memberId)
+                    balance -= (t.getRealValue()/t.getForWhom().size());
+            }
+        }
+
+        return balance;
     }
 
 }

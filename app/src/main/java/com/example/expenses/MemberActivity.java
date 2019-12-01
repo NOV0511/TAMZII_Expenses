@@ -130,6 +130,8 @@ public class MemberActivity extends AppCompatActivity {
                     balance -= (t.getRealValue()/t.getForWhom().size());
             }
         }
+        if ( (balance > 0 && balance < 0.0001) || (balance < 0 && balance > -0.0001) )
+            balance = 0.0;
 
         return balance;
     }
