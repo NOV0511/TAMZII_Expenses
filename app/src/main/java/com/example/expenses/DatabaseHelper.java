@@ -12,6 +12,8 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
+    private static DatabaseHelper sInstance;
+
     // Logcat tag
     private static final String LOG = "DatabaseHelper";
 
@@ -79,6 +81,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    public static synchronized DatabaseHelper getInstance(Context context) {
+
+        if (sInstance == null) {
+            sInstance = new DatabaseHelper(context.getApplicationContext());
+        }
+        return sInstance;
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
 
@@ -103,6 +113,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+
+
     /**
      * INSERTs
      */
@@ -116,12 +128,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_DECK, null, values);
     }
 
-    public long createMember(Member member) {
+    public long createMember(String name, long deckId) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_NAME, member.getName());
-        values.put(DECK_FK, member.getDeck().getId());
+        values.put(KEY_NAME, name);
+        values.put(DECK_FK, deckId);
 
         return db.insert(TABLE_MEMBER, null, values);
     }
@@ -136,19 +148,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insert(TABLE_TRANSACTION_MEMBER, null, values);
     }
 
-    public long createTransaction(Transaction transaction) {
+    public long createTransaction(String description, double value, long currencyId, long deckId, long memberId, List<Member> members) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(TRANSACTION_DESCRIPTION, transaction.getDescription());
-        values.put(TRANSACTION_VALUE, transaction.getValue());
-        values.put(CURRENCY_FK, transaction.getCurrency().getId());
-        values.put(DECK_FK, transaction.getDeckId().getId());
-        values.put(MEMBER_FK, transaction.getWho().getId());
+        values.put(TRANSACTION_DESCRIPTION, description);
+        values.put(TRANSACTION_VALUE, value);
+        values.put(CURRENCY_FK, currencyId);
+        values.put(DECK_FK, deckId);
+        values.put(MEMBER_FK, memberId);
 
         long transactionId = db.insert(TABLE_TRANSACTION, null, values);
 
-        for (Member member : transaction.getForWhom()) {
+        for (Member member : members) {
             createTransactionMember(transactionId, member.getId());
         }
 
@@ -171,6 +183,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * GETTERs
      */
+
+    public List<Currency> getAllCurrencies() {
+        List<Currency> currencies = new ArrayList<Currency>();
+        String selectQuery = "SELECT  * FROM " + TABLE_CURRENCY;
+
+        Log.e(LOG, selectQuery);
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.moveToFirst()) {
+            do {
+                Currency currency = new Currency(
+                        c.getLong(c.getColumnIndex(KEY_ID)),
+                        c.getString(c.getColumnIndex(CURRENCY_CODE)),
+                        c.getString(c.getColumnIndex(KEY_NAME)),
+                        c.getDouble(c.getColumnIndex(CURRENCY_AMOUNT)),
+                        c.getDouble(c.getColumnIndex(CURRENCY_RATE)),
+                        c.getString(c.getColumnIndex(CURRENCY_COUNTRY))
+                );
+
+                currencies.add(currency);
+            } while (c.moveToNext());
+        }
+        c.close();
+        return currencies;
+    }
+
 
     public List<Deck> getAllDecks() {
         List<Deck> decks = new ArrayList<Deck>();
@@ -229,6 +269,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return false;
     }
+
+    public boolean memberExists(String name, long deckId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selectQuery = "SELECT  * FROM " + TABLE_MEMBER + " WHERE "
+                + KEY_NAME + " = '" + name + "'" + " AND " + DECK_FK + " = " + deckId;
+
+        Log.e(LOG, selectQuery);
+
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        if (c.getCount() > 0)
+            return true;
+
+        return false;
+    }
+
 
     public Currency getCurrency(long currencyId){
         SQLiteDatabase db = this.getReadableDatabase();
@@ -362,4 +419,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("delete from "+ TABLE_CURRENCY);
 
     }
+
+    public void deleteDeck(long deckId){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("delete from "+ TABLE_MEMBER + " WHERE " + DECK_FK + " = " + deckId);
+        db.execSQL("delete from "+ TABLE_TRANSACTION_MEMBER + " WHERE " + TRANSACTION_FK + " IN (SELECT "
+                + KEY_ID + " FROM " + TABLE_TRANSACTION + " WHERE " + DECK_FK + " = " + deckId + ")");
+        db.execSQL("delete from "+ TABLE_TRANSACTION + " WHERE " + DECK_FK + " = " + deckId);
+        db.execSQL("delete from "+ TABLE_DECK + " WHERE " + KEY_ID + " = " + deckId);
+
+    }
+
+
 }

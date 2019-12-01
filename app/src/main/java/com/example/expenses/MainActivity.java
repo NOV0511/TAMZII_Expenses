@@ -60,13 +60,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        db = new DatabaseHelper(getApplicationContext());
+        db = DatabaseHelper.getInstance(getApplicationContext());
 
 
         decksView = (ListView)findViewById(R.id.deckList);
         addDeck = (Button)findViewById(R.id.addDeck);
 
-        viewDecks();
 
 
         addDeck.setOnClickListener(new OnClickListener() {
@@ -95,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 builder.show();
             }
         });
+
     }
 
     @Override
@@ -116,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
         updateConnectedFlags();
         loadCurrencies();
+        viewDecks();
     }
 
     private void viewDecks(){
@@ -135,8 +136,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-                //TODO new activity s parametrem deckIds[arg2]
-
+                Intent deckActivity= new Intent(getApplicationContext(), DeckActivity.class);
+                deckActivity.putExtra("deckId", deckIds[arg2]);
+                startActivity(deckActivity);
             }
 
         });
