@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -39,6 +40,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+
+import static java.lang.Math.abs;
 
 public class DeckActivity extends AppCompatActivity {
 
@@ -231,6 +234,7 @@ public class DeckActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         members = db.getMembers(deckId);
+        showTransactions();
     }
 
     @Override
@@ -266,7 +270,7 @@ public class DeckActivity extends AppCompatActivity {
     public void showTransactionList(){
 
         for ( int i = 0; i < transactions.size(); i++ ) {
-            Transaction tr = transactions.get(i);
+            final Transaction tr = transactions.get(i);
 
             LinearLayout layout = new LinearLayout(DeckActivity.this);
 
@@ -279,7 +283,7 @@ public class DeckActivity extends AppCompatActivity {
             TextView tv1 = new TextView(DeckActivity.this);
             tv1.setText("" + tr.getDescription() + " - " + tr.getValue() + " " + tr.getCurrency().getCode());
             TextView tv2 = new TextView(DeckActivity.this);
-            StringBuilder tmp = new StringBuilder("" + tr.getWho().getName() + " zaplatil za: ");
+            StringBuilder tmp = new StringBuilder("" + tr.getWho().getName() + " zaplatil/a za: ");
 
             for ( int j = 0; j < tr.getForWhom().size(); j++ ){
                 if (j == tr.getForWhom().size() - 1)
@@ -292,6 +296,56 @@ public class DeckActivity extends AppCompatActivity {
 
             layout.addView(tv1);
             layout.addView(tv2);
+
+            layout.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    int action = event.getAction();
+                    float initialX = 0;
+                    float initialY = 0;
+
+                    switch (action) {
+                        case MotionEvent.ACTION_DOWN:
+                            initialX = event.getX();
+                            initialY = event.getY();
+                            break;
+
+                        case MotionEvent.ACTION_UP:
+                            float finalX = event.getX();
+                            float finalY = event.getY();
+                            double absX = abs(finalX - initialX);
+                            double absY = abs(finalY - initialY);
+
+
+                            if (initialX < finalX &&  absX > absY && absX > 30) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(DeckActivity.this);
+                                builder.setTitle("Chcete odstranit tento výdaj?");
+
+                                final TextView text1 = new TextView(DeckActivity.this);
+                                text1.setText("");
+                                builder.setView(text1);
+
+                                builder.setPositiveButton("ANO", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        db.deleteTransaction(tr.getId());
+                                        showTransactions();
+                                    }
+                                });
+                                builder.setNegativeButton("NE", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                                builder.show();
+                            }
+                            break;
+                    }
+                    return true;
+                }
+            });
         }
 
     }
@@ -339,11 +393,16 @@ public class DeckActivity extends AppCompatActivity {
             layout.setOrientation(LinearLayout.VERTICAL);
 
             debtsList.addView(layout);
+            SharedPreferences sharedPrefs = getApplicationContext().getSharedPreferences(getString(R.string.pref), Context.MODE_PRIVATE);
+            Currency c = db.getCurrency(Long.parseLong(sharedPrefs.getString(getString(R.string.default_currency), ""+1)));
+
+            double shownDiff = difference;
+            shownDiff = (shownDiff/c.getRate())*c.getAmount();
 
             TextView tv1 = new TextView(DeckActivity.this);
             tv1.setText("" + db.getMember(lowest).getName() + " -> " + db.getMember(highest).getName());
             TextView tv2 = new TextView(DeckActivity.this);
-            tv2.setText("" + difference);
+            tv2.setText("" + shownDiff + " " + c.getCode());
 
             layout.addView(tv1);
             layout.addView(tv2);
@@ -422,9 +481,13 @@ public class DeckActivity extends AppCompatActivity {
                 sum += transactions.get(i).getRealValue();
             }
         }
+        SharedPreferences sharedPrefs = getApplicationContext().getSharedPreferences(getString(R.string.pref), Context.MODE_PRIVATE);
+        Currency c = db.getCurrency(Long.parseLong(sharedPrefs.getString(getString(R.string.default_currency), ""+1)));
 
-        total.setText(""+ sum);
-        totalCount.setText(""+ count);
+        sum = (sum/c.getRate())*c.getAmount();
+
+        total.setText(""+ sum + " " + c.getCode());
+        totalCount.setText("Počet výdajů: "+ count);
     }
 
     public double getMemberBalance(long memberId){

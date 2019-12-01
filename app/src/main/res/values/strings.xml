@@ -2,5 +2,7 @@
     <string name="app_name">Dlužníček</string>
 
     <string name="download_key">download</string>
+    <string name="default_currency">defaultCurr</string>
+    <string name="pref">mySharedPreferences</string>
 
 </resources>

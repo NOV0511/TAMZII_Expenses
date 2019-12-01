@@ -101,18 +101,11 @@ public class MainActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
 
-        SharedPreferences sharedPrefs = this.getPreferences(Context.MODE_PRIVATE);
+
+        SharedPreferences sharedPrefs = getApplicationContext().getSharedPreferences(getString(R.string.pref), Context.MODE_PRIVATE);
 
 
         sPref = sharedPrefs.getString(getString(R.string.download_key), WIFI);
-        /*
-        TODO: tyto shared preferences do settings
-        Log.d("sharing", sPref);
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(getString(R.string.download_key), "any");
-        editor.commit();
-        sPref = sharedPrefs.getString(getString(R.string.download_key), "Wi-Fi");
-        Log.d("sharing", sPref);*/
 
         updateConnectedFlags();
         loadCurrencies();

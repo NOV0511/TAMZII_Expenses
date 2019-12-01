@@ -438,4 +438,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+    public void deleteTransaction(long id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("delete from "+ TABLE_TRANSACTION_MEMBER + " WHERE " + TRANSACTION_FK + " = " + id);
+        db.execSQL("delete from "+ TABLE_TRANSACTION + " WHERE " + KEY_ID + " = " + id);
+    }
 }

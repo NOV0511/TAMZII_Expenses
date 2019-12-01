@@ -3,7 +3,9 @@ package com.example.expenses;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -110,7 +112,13 @@ public class MemberActivity extends AppCompatActivity {
             TextView tv1 = new TextView(MemberActivity.this);
             tv1.setText("" + m.getName());
             TextView tv2 = new TextView(MemberActivity.this);
-            tv2.setText("" + getMemberBalance(m.getId()));
+
+            SharedPreferences sharedPrefs = getApplicationContext().getSharedPreferences(getString(R.string.pref), Context.MODE_PRIVATE);
+            Currency c = db.getCurrency(Long.parseLong(sharedPrefs.getString(getString(R.string.default_currency), ""+1)));
+
+            double shownDiff = getMemberBalance(m.getId());
+            shownDiff = (shownDiff/c.getRate())*c.getAmount();
+            tv2.setText("" + shownDiff + " " + c.getCode());
 
             layout.addView(tv1);
             layout.addView(tv2);
