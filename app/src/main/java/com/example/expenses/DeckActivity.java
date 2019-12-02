@@ -193,6 +193,14 @@ public class DeckActivity extends AppCompatActivity {
                                 }
                             }
                         }
+                        Currency c = db.getCurrency(currIds[curr.getSelectedItemPosition()]);
+                        double comparable = 0.0;
+                        try {
+                            comparable = (Double.parseDouble(value.getText().toString())*c.getRate())/c.getAmount();
+
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                        }
 
                         if(desc.getText().toString().isEmpty() || value.getText().toString().isEmpty() ||
                             who.getCheckedRadioButtonId() == -1 || forWhomMem.size() == 0){
@@ -209,7 +217,23 @@ public class DeckActivity extends AppCompatActivity {
 
 
                             builder.show();
-                        }else {
+                        }else if(comparable > 1000000000000.0 || comparable < -1000000000000.0 ) {
+                            dialog.cancel();
+                            AlertDialog.Builder builder = new AlertDialog.Builder(DeckActivity.this);
+                            builder.setTitle("Alert");
+                            builder.setMessage("Zadali jste příliš vysokou hodnotu.");
+                            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            });
+
+
+                            builder.show();
+                        }
+
+                        else {
                             db.createTransaction(desc.getText().toString(), Double.parseDouble(value.getText().toString()),
                                     currIds[curr.getSelectedItemPosition()], deckId, (long)who.getCheckedRadioButtonId(), forWhomMem);
 

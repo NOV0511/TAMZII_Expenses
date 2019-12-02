@@ -138,14 +138,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addDeck(String name){
-        if ( !db.deckExists(name) ){
+        if ( !db.deckExists(name) && !name.isEmpty() ){
             db.createDeck(name);
             viewDecks();
         }
         else {
+            String msg = "Projekt se zadaným jménem již existuje.";
+            if ( name.isEmpty() ){
+                msg = "Zadejte jméno projektu.";
+            }
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
             builder.setTitle("Alert");
-            builder.setMessage("Projekt se zadaným jménem již existuje.");
+            builder.setMessage(msg);
 
             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override

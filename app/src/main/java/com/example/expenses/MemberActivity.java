@@ -71,14 +71,18 @@ public class MemberActivity extends AppCompatActivity {
     }
 
     private void addMember(String name){
-        if ( !db.memberExists(name, deckId) ){
+        if ( !db.memberExists(name, deckId)  && !name.isEmpty()){
             db.createMember(name, deckId);
             showMembers();
         }
         else {
+            String msg = "Uživatel se zadaným jménem již existuje.";
+            if ( name.isEmpty() ){
+                msg = "Zadejte jméno uživatele.";
+            }
             AlertDialog.Builder builder = new AlertDialog.Builder(MemberActivity.this);
             builder.setTitle("Alert");
-            builder.setMessage("Uživatel se zadaným jménem již existuje.");
+            builder.setMessage(msg);
 
 
 
