@@ -10,6 +10,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
@@ -70,6 +73,9 @@ public class DeckActivity extends AppCompatActivity {
 
         deckId = getIntent().getExtras().getLong("deckId");
 
+
+        setTitle(db.getDeck(deckId).getName());
+
         showMemberButton = findViewById(R.id.showMembers);
         addTransactionButton = findViewById(R.id.addTransaction);
         removeDeckButton = findViewById(R.id.removeDeck);
@@ -97,6 +103,8 @@ public class DeckActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 db.deleteDeck(deckId);
+                MediaPlayer mediaPlayer = MediaPlayer.create(DeckActivity.this, R.raw.delete);
+                mediaPlayer.start();
                 finish();
             }
         });
@@ -208,6 +216,8 @@ public class DeckActivity extends AppCompatActivity {
                             AlertDialog.Builder builder = new AlertDialog.Builder(DeckActivity.this);
                             builder.setTitle("Alert");
                             builder.setMessage("Musíte vyplnit všechny hodnoty.");
+                            MediaPlayer mediaPlayer = MediaPlayer.create(DeckActivity.this, R.raw.fail);
+                            mediaPlayer.start();
                             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -222,6 +232,8 @@ public class DeckActivity extends AppCompatActivity {
                             AlertDialog.Builder builder = new AlertDialog.Builder(DeckActivity.this);
                             builder.setTitle("Alert");
                             builder.setMessage("Zadali jste příliš vysokou hodnotu.");
+                            MediaPlayer mediaPlayer = MediaPlayer.create(DeckActivity.this, R.raw.fail);
+                            mediaPlayer.start();
                             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -234,6 +246,9 @@ public class DeckActivity extends AppCompatActivity {
                         }
 
                         else {
+
+                            MediaPlayer mediaPlayer = MediaPlayer.create(DeckActivity.this, R.raw.money);
+                            mediaPlayer.start();
                             db.createTransaction(desc.getText().toString(), Double.parseDouble(value.getText().toString()),
                                     currIds[curr.getSelectedItemPosition()], deckId, (long)who.getCheckedRadioButtonId(), forWhomMem);
 
@@ -306,6 +321,8 @@ public class DeckActivity extends AppCompatActivity {
 
             TextView tv1 = new TextView(DeckActivity.this);
             tv1.setText("" + tr.getDescription() + " - " + tr.getValue() + " " + tr.getCurrency().getCode());
+            tv1.setTextSize(16);
+            tv1.setTypeface(null, Typeface.BOLD);
             TextView tv2 = new TextView(DeckActivity.this);
             StringBuilder tmp = new StringBuilder("" + tr.getWho().getName() + " zaplatil/a za: ");
 
@@ -317,6 +334,7 @@ public class DeckActivity extends AppCompatActivity {
             }
 
             tv2.setText(tmp.toString());
+            tv2.setPadding(0,0,0,25);
 
             layout.addView(tv1);
             layout.addView(tv2);
@@ -353,6 +371,9 @@ public class DeckActivity extends AppCompatActivity {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         db.deleteTransaction(tr.getId());
+
+                                        MediaPlayer mediaPlayer = MediaPlayer.create(DeckActivity.this, R.raw.delete);
+                                        mediaPlayer.start();
                                         showTransactions();
                                     }
                                 });
@@ -425,8 +446,11 @@ public class DeckActivity extends AppCompatActivity {
 
             TextView tv1 = new TextView(DeckActivity.this);
             tv1.setText("" + db.getMember(lowest).getName() + " -> " + db.getMember(highest).getName());
+            tv1.setTextSize(16);
+            tv1.setTypeface(null, Typeface.BOLD);
             TextView tv2 = new TextView(DeckActivity.this);
             tv2.setText("" + shownDiff + " " + c.getCode());
+            tv2.setPadding(0,0,0,25);
 
             layout.addView(tv1);
             layout.addView(tv2);
@@ -450,6 +474,8 @@ public class DeckActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             List<Member> m = new ArrayList<>();
                             m.add(db.getMember(high));
+                            MediaPlayer mediaPlayer = MediaPlayer.create(DeckActivity.this, R.raw.applause);
+                            mediaPlayer.start();
                             db.createTransaction("debtPayBack", diff, 1, deckId, low, m);
                             showTransactions();
                         }

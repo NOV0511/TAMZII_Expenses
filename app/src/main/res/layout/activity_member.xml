@@ -14,16 +14,20 @@
         android:id="@+id/members"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingLeft="25dp">
     </LinearLayout>
 
 
 
     <Button
         android:id="@+id/addMember"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="Přidat uživatele" />
+        android:text="Přidat uživatele"
+        android:textAllCaps="true"
+        android:textColor="#fff"
+        style="@style/Widget.AppCompat.Button.Colored"/>
 
 </LinearLayout>
 </ScrollView>

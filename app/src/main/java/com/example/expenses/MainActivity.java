@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -107,6 +108,8 @@ public class MainActivity extends AppCompatActivity {
 
         sPref = sharedPrefs.getString(getString(R.string.download_key), WIFI);
 
+
+
         updateConnectedFlags();
         loadCurrencies();
         viewDecks();
@@ -147,6 +150,8 @@ public class MainActivity extends AppCompatActivity {
             if ( name.isEmpty() ){
                 msg = "Zadejte jméno projektu.";
             }
+            MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, R.raw.fail);
+            mediaPlayer.start();
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
             builder.setTitle("Alert");
             builder.setMessage(msg);

@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -36,6 +38,9 @@ public class MemberActivity extends AppCompatActivity {
         db = DatabaseHelper.getInstance(getApplicationContext());
 
         deckId = getIntent().getExtras().getLong("deckId");
+
+
+        setTitle(db.getDeck(deckId).getName());
 
         addMemberButton = findViewById(R.id.addMember);
         memberList = findViewById(R.id.members);
@@ -73,6 +78,8 @@ public class MemberActivity extends AppCompatActivity {
     private void addMember(String name){
         if ( !db.memberExists(name, deckId)  && !name.isEmpty()){
             db.createMember(name, deckId);
+            MediaPlayer mediaPlayer = MediaPlayer.create(MemberActivity.this, R.raw.ehm);
+            mediaPlayer.start();
             showMembers();
         }
         else {
@@ -83,6 +90,8 @@ public class MemberActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(MemberActivity.this);
             builder.setTitle("Alert");
             builder.setMessage(msg);
+            MediaPlayer mediaPlayer = MediaPlayer.create(MemberActivity.this, R.raw.fail);
+            mediaPlayer.start();
 
 
 
@@ -115,7 +124,10 @@ public class MemberActivity extends AppCompatActivity {
 
             TextView tv1 = new TextView(MemberActivity.this);
             tv1.setText("" + m.getName());
+            tv1.setTextSize(16);
+            tv1.setTypeface(null, Typeface.BOLD);
             TextView tv2 = new TextView(MemberActivity.this);
+            tv2.setPadding(0,0,0,20);
 
             SharedPreferences sharedPrefs = getApplicationContext().getSharedPreferences(getString(R.string.pref), Context.MODE_PRIVATE);
             Currency c = db.getCurrency(Long.parseLong(sharedPrefs.getString(getString(R.string.default_currency), ""+1)));

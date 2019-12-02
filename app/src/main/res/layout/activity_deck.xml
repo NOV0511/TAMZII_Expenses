@@ -11,15 +11,19 @@ tools:context=".DeckActivity">
 
     <Button
         android:id="@+id/showMembers"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="Lidé" />
+        android:text="Uživatelé"
+        android:textAllCaps="true"
+        android:textColor="#fff"
+        style="@style/Widget.AppCompat.Button.Colored" />
 
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:textSize="16sp"
+        android:textSize="20sp"
+        android:textColor="@color/text"
         android:text="Výdaje">
     </TextView>
 
@@ -27,20 +31,25 @@ tools:context=".DeckActivity">
         android:id="@+id/transactionList"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingLeft="25dp">
     </LinearLayout>
 
     <Button
         android:id="@+id/addTransaction"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="Přidat výdaj" />
+        android:text="Přidat výdaj"
+        android:textAllCaps="true"
+        android:textColor="#fff"
+        style="@style/Widget.AppCompat.Button.Colored" />
 
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:textSize="16sp"
+        android:textSize="20sp"
+        android:textColor="@color/text"
         android:text="Dluhy">
     </TextView>
 
@@ -48,14 +57,16 @@ tools:context=".DeckActivity">
         android:id="@+id/debts"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingLeft="25dp">
     </LinearLayout>
 
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:textSize="16sp"
+        android:textSize="20sp"
+        android:textColor="@color/text"
         android:text="Clekové výdaje">
     </TextView>
 
@@ -65,21 +76,24 @@ tools:context=".DeckActivity">
             android:id="@+id/total"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:padding="10dp"
+            android:paddingLeft="25dp"
             android:textSize="16sp"></TextView>
 
         <TextView
             android:id="@+id/totalCount"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:padding="10dp"
+            android:paddingLeft="25dp"
             android:textSize="16sp"></TextView>
 
     <Button
         android:id="@+id/removeDeck"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="Odstranit projekt" />
+        android:text="Odstranit projekt"
+        android:textAllCaps="true"
+        android:textColor="#fff"
+        style="@style/Widget.AppCompat.Button.Colored" />
 
 </LinearLayout>
 </ScrollView>

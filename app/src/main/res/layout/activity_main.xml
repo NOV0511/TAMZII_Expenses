@@ -10,14 +10,18 @@ android:orientation="vertical">
 <ListView
     android:id="@+id/deckList"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    >
 
 </ListView>
 
 <Button
     android:id="@+id/addDeck"
-    android:layout_width="wrap_content"
+    android:layout_width="200dp"
     android:layout_height="wrap_content"
-    android:text="Nový projekt" />
+    android:text="Nový projekt"
+    android:textAllCaps="true"
+    android:textColor="#fff"
+    style="@style/Widget.AppCompat.Button.Colored"/>
 </LinearLayout>
 </ScrollView>
